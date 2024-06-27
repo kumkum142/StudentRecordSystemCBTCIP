@@ -1,161 +1,122 @@
-//#include <iostream>
-//#include <limits>
-//
-//using namespace std;
-//
-//// Function to validate numerical input
-//double getValidatedInput() {
-//    double num;
-//    while (true) {
-//        cin >> num;
-//        if (cin.fail()) {
-//            cin.clear(); // Clear the error flag
-//            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore invalid input
-//            cout << "Invalid input. Please enter a numerical value: ";
-//        } else {
-//            return num;
-//        }
-//    }
-//}
-//
-//// Function to display the menu and get the user's choice
-//int displayMenu() {
-//    int choice;
-//    cout << "\nDigital Calculator Menu:\n";
-//    cout << "1. Addition\n";
-//    cout << "2. Subtraction\n";
-//    cout << "3. Multiplication\n";
-//    cout << "4. Division\n";
-//    cout << "5. Exit\n";
-//    cout << "Enter your choice (1-5): ";
-//    cin >> choice;
-//    return choice;
-//}
-//
-//// Function to perform the chosen operation
-//void performOperation(int choice) {
-//    double num1, num2;
-//    cout << "Enter the first number: ";
-//    num1 = getValidatedInput();
-//    cout << "Enter the second number: ";
-//    num2 = getValidatedInput();
-//
-//    switch (choice) {
-//        case 1:
-//            cout << "Result: " << num1 + num2 << endl;
-//            break;
-//        case 2:
-//            cout << "Result: " << num1 - num2 << endl;
-//            break;
-//        case 3:
-//            cout << "Result: " << num1 * num2 << endl;
-//            break;
-//        case 4:
-//            if (num2 != 0) {
-//                cout << "Result: " << num1 / num2 << endl;
-//            } else {
-//                cout << "Error: Division by zero is not allowed.\n";
-//            }
-//            break;
-//        default:
-//            cout << "Invalid choice.\n";
-//            break;
-//    }
-//}
-//
-//int main() {
-//    int choice;
-//    while (true) {
-//        choice = displayMenu();
-//        if (choice == 5) {
-//            cout << "Exiting the calculator. Goodbye!\n";
-//            break;
-//        }
-//        performOperation(choice);
-//    }
-//    return 0;
-//}
-
-//#include <SFML/Graphics.hpp>
 #include <iostream>
+#include <fstream>
+#include <vector>
 #include <string>
-#include <sstream>
 
-// Function to check if a string is a number
-bool isNumber(const std::string& str) {
-    std::istringstream iss(str);
-    double d;
-    return iss >> d >> std::ws && iss.eof();
-}
+using namespace std;
 
-int main() {
-    sf::RenderWindow window(sf::VideoMode(400, 600), "SFML Calculator");
-    sf::Font font;
-    if (!font.loadFromFile("arial.ttf")) {
-        return EXIT_FAILURE;
+class Student {
+public:
+    int rollNumber;
+    string name;
+    string address;
+    float marks;
+
+    void input() {
+        cout << "Enter Roll Number: ";
+        cin >> rollNumber;
+        cin.ignore();
+        cout << "Enter Name: ";
+        getline(cin, name);
+        cout << "Enter Address: ";
+        getline(cin, address);
+        cout << "Enter Marks: ";
+        cin >> marks;
     }
 
-    sf::Text display("", font, 30);
-    display.setFillColor(sf::Color::Black);
-    display.setPosition(10, 10);
+    void display() const {
+        cout << "Roll Number: " << rollNumber << endl;
+        cout << "Name: " << name << endl;
+        cout << "Address: " << address << endl;
+        cout << "Marks: " << marks << endl;
+    }
+};
 
-    std::string currentInput = "";
-    std::string previousInput = "";
-    char operation = '\0';
+class StudentRecordManager {
+    vector<Student> students;
 
-    while (window.isOpen()) {
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) {
-                window.close();
-            }
-            if (event.type == sf::Event::TextEntered) {
-                if (event.text.unicode >= '0' && event.text.unicode <= '9') {
-                    currentInput += static_cast<char>(event.text.unicode);
-                } else if (event.text.unicode == '.') {
-                    if (currentInput.find('.') == std::string::npos) {
-                        currentInput += '.';
-                    }
-                } else if (event.text.unicode == '+' || event.text.unicode == '-' || 
-                           event.text.unicode == '*' || event.text.unicode == '/') {
-                    if (isNumber(currentInput)) {
-                        previousInput = currentInput;
-                        currentInput = "";
-                        operation = static_cast<char>(event.text.unicode);
-                    }
-                } else if (event.text.unicode == 13) { // Enter key
-                    if (isNumber(currentInput) && isNumber(previousInput)) {
-                        double num1 = std::stod(previousInput);
-                        double num2 = std::stod(currentInput);
-                        double result = 0;
+public:
+    void addStudent() {
+        Student student;
+        student.input();
+        students.push_back(student);
+        cout << "Student added successfully.\n";
+    }
 
-                        if (operation == '+') result = num1 + num2;
-                        else if (operation == '-') result = num1 - num2;
-                        else if (operation == '*') result = num1 * num2;
-                        else if (operation == '/') result = num1 / num2;
+    void displayStudents() const {
+        for (const auto& student : students) {
+            student.display();
+            cout << "----------------------\n";
+        }
+    }
 
-                        currentInput = std::to_string(result);
-                        previousInput = "";
-                        operation = '\0';
-                    }
-                } else if (event.text.unicode == 8) { // Backspace key
-                    if (!currentInput.empty()) {
-                        currentInput.pop_back();
-                    }
-                } else if (event.text.unicode == 'c' || event.text.unicode == 'C') {
-                    currentInput = "";
-                    previousInput = "";
-                    operation = '\0';
-                }
-            }
+    void saveToFile(const string& filename) const {
+        ofstream file(filename);
+        for (const auto& student : students) {
+            file << student.rollNumber << '\n'
+                 << student.name << '\n'
+                 << student.address << '\n'
+                 << student.marks << '\n';
+        }
+        file.close();
+        cout << "Records saved to file successfully.\n";
+    }
+
+    void loadFromFile(const string& filename) {
+        ifstream file(filename);
+        if (!file) {
+            cout << "File not found.\n";
+            return;
         }
 
-        display.setString(currentInput);
-
-        window.clear(sf::Color::White);
-        window.draw(display);
-        window.display();
+        Student student;
+        while (file >> student.rollNumber) {
+            file.ignore();
+            getline(file, student.name);
+            getline(file, student.address);
+            file >> student.marks;
+            students.push_back(student);
+        }
+        file.close();
+        cout << "Records loaded from file successfully.\n";
     }
+};
+
+int main() {
+    StudentRecordManager manager;
+    int choice;
+    string filename = "students.txt";
+
+    do {
+        cout << "1. Add Student\n";
+        cout << "2. Display Students\n";
+        cout << "3. Save to File\n";
+        cout << "4. Load from File\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                manager.addStudent();
+                break;
+            case 2:
+                manager.displayStudents();
+                break;
+            case 3:
+                manager.saveToFile(filename);
+                break;
+            case 4:
+                manager.loadFromFile(filename);
+                break;
+            case 5:
+                cout << "Exiting...\n";
+                break;
+            default:
+                cout << "Invalid choice. Try again.\n";
+        }
+    } while (choice != 5);
 
     return 0;
 }
+
